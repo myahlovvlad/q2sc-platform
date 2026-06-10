@@ -1,6 +1,11 @@
 {
   "name": "q2sc-electron-client",
   "version": "0.1.0-alpha",
+  "description": "Q2SC — Quantum & QSAR Spectral Chemistry Platform desktop client",
+  "author": {
+    "name": "Vlad Myahlov",
+    "email": "myahlov@gmail.com"
+  },
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",
