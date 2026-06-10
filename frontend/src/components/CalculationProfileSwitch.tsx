@@ -140,7 +140,7 @@ export function CalculationProfileSwitch({
           <button
             key={profile.id}
             type="button"
-            aria-pressed={selected}
+            aria-pressed={selected ? 'true' : 'false'}
             onClick={() => onChange(profile)}
             title={profile.description}
             className={[

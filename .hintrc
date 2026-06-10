@@ -1,0 +1,15 @@
+{
+  "extends": ["web-recommended"],
+  "hints": {
+    "no-inline-styles": "off",
+    "axe/aria": "off",
+    "compat-api/css": "off"
+  },
+  "hintsTimeout": 10000,
+  "ignoredUrls": [
+    "*.tsx",
+    "*.ts",
+    "*.jsx",
+    "*.js"
+  ]
+}

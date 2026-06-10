@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tailwind Preflight uses only the webkit-prefixed variant; add the standard
+   property so Chrome 54+, Edge 79+, Samsung Internet 6.0+ are covered. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 :root {
   --background: 222 47% 4%;
   --foreground: 210 40% 98%;
@@ -52,6 +59,11 @@ html, body, #root {
   background-color: #22d3ee;
   transition: width 0.7s ease-out;
   width: var(--q-bar-pct, 3%);
+}
+
+/* Boltzmann population bar — width driven by --bar-w custom property */
+.conformer-bar {
+  width: var(--bar-w, 1%);
 }
 
 .molecule-viewer-canvas canvas {

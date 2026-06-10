@@ -1,3 +1,5 @@
+import type React from 'react'
+
 type Spectrum = {
   x_axis: number[]
   y_axis: number[]
@@ -56,7 +58,10 @@ export function EnsemblePopulationPlot({
         <div key={conformer.id} className="grid grid-cols-[64px_1fr_120px] items-center gap-3 text-xs">
           <div>Конф. {conformer.id}</div>
           <div className="h-5 overflow-hidden rounded bg-slate-900">
-            <div className="h-full bg-cyan-500" style={{ width: `${Math.max(1, conformer.boltzmann_weight * 100)}%` }} />
+            <div
+              className="conformer-bar h-full bg-cyan-500"
+              style={{ '--bar-w': `${Math.max(1, conformer.boltzmann_weight * 100)}%` } as React.CSSProperties}
+            />
           </div>
           <div className="text-right text-slate-400">{(conformer.boltzmann_weight * 100).toFixed(2)}% · ΔE {conformer.relative_energy_kcal_mol.toFixed(2)}</div>
         </div>

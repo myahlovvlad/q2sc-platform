@@ -1,0 +1,42 @@
+{
+  // Tailwind CSS uses non-standard @tailwind / @apply directives.
+  // Disable the built-in CSS validator and rely on the Tailwind CSS IntelliSense
+  // extension for completions and validation instead.
+  "css.validate": false,
+  "scss.validate": false,
+
+  // Suppress Edge Tools / webhint false positives in TSX files.
+  //  - "aria-*={expression}": Edge Tools reads JSX source as plain HTML and sees
+  //    the raw {expr} text. At runtime React renders valid 'true'/'false' strings.
+  //  - "no-inline-styles": flags CSS custom properties (style={{ '--var': val }}).
+  //    Custom properties require inline style — there is no other mechanism.
+  //  - "compat-api/css": flags -webkit-text-size-adjust; we add both the prefixed
+  //    and standard form in styles.css, which is the correct cross-browser fix.
+  "webhint.enableTelemetry": "disabled",
+  "microsoft-edge-tools.webhint": {
+    "hintrc": ".hintrc"
+  },
+  // Disable Edge Tools diagnostics entirely for source (tsx/ts) files.
+  // The extension is intended for analysing rendered HTML in DevTools, not JSX.
+  "microsoft-edge-tools.enableNetwork": false,
+  "edgeDevTools.webhintMode": "off",
+
+  // TypeScript/TSX files: do not try to validate ARIA via the HTML linter.
+  "html.validate.scripts": false,
+  "html.validate.styles": false,
+
+  // File associations so VS Code correctly identifies templates.
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // Show Tailwind completions in all class attribute contexts.
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html",
+    "typescriptreact": "html"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+    ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
+}
