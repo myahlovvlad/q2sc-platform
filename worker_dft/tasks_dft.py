@@ -15,7 +15,14 @@ celery_app = Celery(
     broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1"),
     backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/2"),
 )
-celery_app.conf.broker_connection_retry_on_startup = True
+celery_app.conf.update(
+    broker_connection_retry_on_startup=True,
+    task_track_started=True,          # emit STARTED state when worker picks up task
+    result_extended=True,             # preserve PROGRESS meta in Redis result backend
+    task_serializer="json",
+    result_serializer="json",
+    accept_content=["json"],
+)
 
 # Profiles that need cubes (electron density, HOMO, LUMO visualization)
 _CUBE_PROFILES = {"electronic", "qmmm"}

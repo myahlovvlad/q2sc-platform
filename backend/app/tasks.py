@@ -11,7 +11,14 @@ celery_app = Celery(
     broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1"),
     backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/2"),
 )
-celery_app.conf.broker_connection_retry_on_startup = True
+celery_app.conf.update(
+    broker_connection_retry_on_startup=True,
+    task_track_started=True,
+    result_extended=True,
+    task_serializer="json",
+    result_serializer="json",
+    accept_content=["json"],
+)
 
 
 def submit_quantum_job(payload: dict):

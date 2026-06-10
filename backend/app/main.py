@@ -71,6 +71,46 @@ async def health() -> dict[str, Any]:
     }
 
 
+@app.get("/api/v1/workers/status")
+async def workers_status() -> dict[str, Any]:
+    """Ping all registered Celery workers and report their state.
+
+    Returns within ~3 s because we use a short timeout for the inspect ping.
+    The frontend can call this endpoint to show a meaningful error instead of
+    waiting indefinitely on a task that will never be picked up.
+    """
+    try:
+        inspect = celery_app.control.inspect(timeout=3.0)
+        active = inspect.active() or {}
+        ping = inspect.ping() or {}
+        stats = inspect.stats() or {}
+        heavy_dft_workers = [
+            name for name in active
+            if "dft" in name.lower() or any(
+                q.get("name") == "heavy_dft"
+                for q in (stats.get(name) or {}).get("total", {}).values()
+                if isinstance(q, dict)
+            )
+        ]
+        return {
+            "broker_reachable": True,
+            "online_workers": list(ping.keys()),
+            "heavy_dft_workers": heavy_dft_workers,
+            "heavy_dft_available": len(heavy_dft_workers) > 0 or len(active) > 0,
+            "active_tasks": {
+                name: len(tasks) for name, tasks in active.items()
+            },
+        }
+    except Exception as exc:
+        return {
+            "broker_reachable": False,
+            "online_workers": [],
+            "heavy_dft_workers": [],
+            "heavy_dft_available": False,
+            "error": str(exc),
+        }
+
+
 @app.post("/api/v1/predict", response_model=DirectPredictionResponse)
 async def predict(request: DirectPredictionRequest) -> DirectPredictionResponse:
     loop = asyncio.get_running_loop()
@@ -201,14 +241,29 @@ async def quantum_report(request: QuantumReportRequest) -> Response:
 async def quantum_job_status(task_id: str) -> QuantumJobStatus:
     task = celery_app.AsyncResult(task_id)
     if not task.ready():
+        state = task.state
         meta: dict = task.info if isinstance(task.info, dict) else {}
+        # Provide meaningful messages for pre-execution states so the UI
+        # never shows a blank progress line while the task is queued/starting.
+        if state == "PENDING":
+            progress = meta.get("progress", 0)
+            step = meta.get("step", "queued")
+            message = meta.get("message", "Задача в очереди, ожидание воркера…")
+        elif state == "STARTED":
+            progress = meta.get("progress", 1)
+            step = meta.get("step", "started")
+            message = meta.get("message", "Воркер принял задачу, инициализация…")
+        else:
+            progress = meta.get("progress")
+            step = meta.get("step")
+            message = meta.get("message")
         return QuantumJobStatus(
             task_id=task_id,
-            state=task.state,
+            state=state,
             ready=False,
-            progress=meta.get("progress"),
-            step=meta.get("step"),
-            message=meta.get("message"),
+            progress=progress,
+            step=step,
+            message=message,
         )
     if task.successful():
         return QuantumJobStatus(

@@ -252,6 +252,9 @@ export async function waitForQuantumJob(
   onProgress?: (p: QuantumJobProgress) => void,
 ): Promise<QuantumResult> {
   // 900 polls × 2 s = 30 min maximum wait
+  const WORKER_TIMEOUT_MS = 90_000   // warn after 90 s in PENDING/STARTED
+  let pendingStartMs: number | null = null
+
   for (let attempt = 0; attempt < 900; attempt += 1) {
     const res = await fetch(`${API_BASE}/api/v1/quantum/jobs/${taskId}`)
     const status = await readJson(res) as {
@@ -266,11 +269,33 @@ export async function waitForQuantumJob(
     }
     if (status.ready && status.successful) return status.result
     if (status.ready && !status.successful) throw new Error(status.error || 'Quantum job failed')
+
     if (onProgress) {
+      const isPending = status.state === 'PENDING' || status.state === 'STARTED'
+
+      // Track how long we've been in pre-execution states
+      if (isPending) {
+        if (pendingStartMs === null) pendingStartMs = Date.now()
+      } else {
+        pendingStartMs = null
+      }
+
+      const pendingTooLong =
+        pendingStartMs !== null && Date.now() - pendingStartMs > WORKER_TIMEOUT_MS
+
+      // Use server-provided message; fall back to state-appropriate defaults.
+      // Never pass empty strings - they cause the UI to show the generic fallback.
+      const message = status.message
+        || (pendingTooLong
+          ? 'Воркер не отвечает — проверьте Docker (docker compose ps)'
+          : isPending
+            ? 'Задача в очереди, ожидание воркера…'
+            : '')
+
       onProgress({
         progress: status.progress ?? 0,
-        step: status.step ?? '',
-        message: status.message ?? '',
+        step: status.step || status.state.toLowerCase(),
+        message,
         state: status.state,
       })
     }

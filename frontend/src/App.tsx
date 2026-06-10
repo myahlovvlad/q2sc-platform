@@ -486,9 +486,11 @@ function QuantumWorkspace({
                       style={{ '--q-bar-pct': `${Math.max(3, progress)}%` } as React.CSSProperties}
                     />
                   </div>
-                  <div className="text-[11px] text-slate-400">
-                    {progressMessage || progressStep || 'Ожидание воркера…'}
-                    {progress > 0 && <span className="ml-2 text-cyan-400">{progress}%</span>}
+                  <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                    <span className={progressStep === 'queued' || progressStep === 'pending' ? 'text-yellow-400' : ''}>
+                      {progressMessage || progressStep || 'Подготовка…'}
+                    </span>
+                    {progress > 0 && <span className="text-cyan-400">{progress}%</span>}
                   </div>
                 </div>
               )}
