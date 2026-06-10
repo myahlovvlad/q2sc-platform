@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: q2sc-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-q2sc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-q2sc_password}
+      POSTGRES_DB: ${POSTGRES_DB:-q2sc}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-q2sc} -d ${POSTGRES_DB:-q2sc}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: q2sc-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    container_name: q2sc-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-q2sc_storage}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-q2sc_storage_password}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - s3data:/data
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: q2sc-api
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+
+  worker-ai:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: q2sc-worker-ai
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    command: celery -A app.tasks.celery_app worker --loglevel=info -Q fast_tasks --concurrency=2
+    volumes:
+      - ./backend:/app
+
+  worker-dft:
+    build:
+      context: ./worker_dft
+      dockerfile: Dockerfile
+    container_name: q2sc-worker-dft
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A tasks_dft.celery_app worker --loglevel=info -Q heavy_dft --pool=solo --concurrency=1
+    volumes:
+      - ./worker_dft:/worker
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: q2sc-frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+
+volumes:
+  pgdata:
+  s3data:

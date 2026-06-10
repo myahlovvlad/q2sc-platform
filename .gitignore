@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node/Electron
+node_modules/
+dist/
+release/
+.vite/
+*.tsbuildinfo
+
+# Env/data
+.env
+*.sqlite3
+*.db
+storage/
+logs/
+.DS_Store
+
+# IDE / Claude Code session state
+.claude/
+*.jsonl
+
+# Books / local binary assets
+Books computational chemistry/
+Potential surface molecule/
+artifacts/

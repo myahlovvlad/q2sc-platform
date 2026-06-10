@@ -1,0 +1,8 @@
+{
+  "name": "q2sc-saas-platform",
+  "version": "0.1.0-alpha",
+  "purpose": "SaaS/Desktop alpha scaffold for predictive spectroscopy QSAR/QSPR workflows",
+  "stack": ["Electron", "React", "TypeScript", "shadcn-style UI", "FastAPI", "Celery", "PostgreSQL", "Redis", "MinIO", "Docker Compose"],
+  "workflows": ["direct_prediction", "reverse_analysis", "parallel_screening", "parking_orbit", "mcp_tool_call"],
+  "validation_status": "engineering scaffold; not scientifically validated"
+}
