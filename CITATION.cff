@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use Q2SC in research or technical work, please cite the software using this metadata."
+title: "Q2SC Platform"
+type: software
+authors:
+  - family-names: "Myahlov"
+    given-names: "Vlad"
+repository-code: "https://github.com/myahlovvlad/q2sc-platform"
+abstract: >-
+  An alpha-stage research platform for computational chemistry, predictive
+  spectroscopy, chemometrics, reference-data management, and traceable
+  scientific workflows.
+keywords:
+  - computational chemistry
+  - predictive spectroscopy
+  - chemometrics
+  - scientific software
+  - laboratory informatics
+license: "NOASSERTION"
